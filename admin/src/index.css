@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: linear-gradient(to bottom, #2e1065 0%, #1a0b2e 30%, #0f0518 100%);
+  min-height: 100vh;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nebula-bg {
+  background-image: 
+    radial-gradient(circle at 50% 30%, rgba(126, 34, 206, 0.4) 0%, rgba(26, 11, 46, 0) 70%),
+    radial-gradient(circle at 80% 10%, rgba(244, 192, 37, 0.1) 0%, rgba(0, 0, 0, 0) 50%);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(244, 192, 37, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(244, 192, 37, 0.5);
+}
