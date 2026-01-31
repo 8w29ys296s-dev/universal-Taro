@@ -1,0 +1,8 @@
+{
+    "name": "universal-taro",
+    "template": "vite",
+    "build": {
+        "command": "npm run build",
+        "output": "./dist"
+    }
+}
