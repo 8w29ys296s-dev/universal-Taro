@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Tarot AI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Spline+Sans:wght@300;400;500;600;700&family=Noto+Serif:wght@400;700&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f4c025",
+              "primary-glow": "#f4c02580",
+              "background-light": "#f8f8f5",
+              "background-dark": "#1a0b2e",
+              "mystic-purple": "#581c87",
+              "deep-space": "#0f0518",
+              "surface-glass": "rgba(255, 255, 255, 0.05)",
+            },
+            fontFamily: {
+              "sans": ["Noto Sans SC", "sans-serif"],
+              "display": ["Spline Sans", "Noto Sans SC", "sans-serif"],
+              "serif": ["Noto Serif", "serif"],
+              "body": ["Noto Sans SC", "sans-serif"]
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'shimmer': 'shimmer 2s linear infinite',
+              'breathing-glow': 'breathing-glow 3s ease-in-out infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              shimmer: {
+                '0%': { opacity: '0.5' },
+                '50%': { opacity: '1' },
+                '100%': { opacity: '0.5' },
+              },
+              'breathing-glow': {
+                '0%, 100%': { boxShadow: '0 0 5px rgba(255, 255, 255, 0.1), inset 0 0 10px rgba(255, 255, 255, 0.05)' },
+                '50%': { boxShadow: '0 0 20px rgba(244, 192, 37, 0.3), inset 0 0 20px rgba(244, 192, 37, 0.1)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body { min-height: 100dvh; background-color: #1a0b2e; color: white; }
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .glass-panel {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .nebula-bg {
+          background-image: 
+              radial-gradient(circle at 50% 30%, rgba(126, 34, 206, 0.4) 0%, rgba(26, 11, 46, 0) 70%),
+              radial-gradient(circle at 80% 10%, rgba(244, 192, 37, 0.1) 0%, rgba(0, 0, 0, 0) 50%),
+              linear-gradient(to bottom, #2e1065 0%, #1a0b2e 50%, #0f0518 100%);
+      }
+      .card-back-pattern {
+          background-image: radial-gradient(circle at center, transparent 0%, transparent 40%, rgba(244, 192, 37, 0.1) 100%),
+                            repeating-linear-gradient(45deg, rgba(244, 192, 37, 0.05) 0px, rgba(244, 192, 37, 0.05) 1px, transparent 1px, transparent 10px);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.29.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
