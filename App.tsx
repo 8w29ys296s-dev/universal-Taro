@@ -2073,7 +2073,7 @@ const StoreScreen = () => {
             {showUnlockAnimation && <GrandUnlockOverlay onClose={() => setShowUnlockAnimation(false)} />}
 
             <div className="pt-12 px-6 pb-4">
-                <h1 className="text-2xl font-bold text-white mb-6">{t('store.title')}</h1>
+                <h1 className="text-2xl font-bold text-white mb-6">{t('store.title')} <span className="text-xs opacity-50 bg-white/10 px-2 py-1 rounded">Dev 1.1</span></h1>
 
                 {/* Balance Card */}
                 <div className="w-full bg-gradient-to-r from-[#f4c025] to-[#b4860b] rounded-2xl p-6 mb-4 shadow-lg relative overflow-hidden">
