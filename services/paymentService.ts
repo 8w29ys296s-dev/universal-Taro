@@ -46,9 +46,15 @@ export const createPaymentOrder = async (
         return { success: false, error: 'No session' };
     }
 
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+        console.error('VITE_SUPABASE_URL is missing');
+        return { success: false, error: '配置错误: 缺少 API 地址 (请在 Zeabur 设置环境变量)' };
+    }
+
     try {
         const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-order`,
+            `${supabaseUrl}/functions/v1/create-order`,
             {
                 method: 'POST',
                 headers: {
@@ -65,6 +71,14 @@ export const createPaymentOrder = async (
             }
         );
 
+        // 处理非 JSON 响应（如 404 HTML）
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response:', text.substring(0, 100));
+            return { success: false, error: `服务器返回异常 (${response.status})` };
+        }
+
         const result = await response.json();
         
         if (!response.ok) {
@@ -78,7 +92,7 @@ export const createPaymentOrder = async (
         };
     } catch (error) {
         console.error('Error creating payment order:', error);
-        return { success: false, error: 'Network error' };
+        return { success: false, error: '网络请求失败，请检查控制台' };
     }
 };
 
