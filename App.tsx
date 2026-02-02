@@ -2042,7 +2042,9 @@ const StoreScreen = () => {
             );
 
             if (!result.success || !result.payUrl) {
-                showToast(result.error || '创建订单失败', 'error');
+                const errorMsg = result.error || '创建订单失败';
+                showToast(errorMsg, 'error');
+                alert(`支付错误:\n${errorMsg}\n\n请截图联系客服`);
                 setIsPaying(false);
                 return;
             }
@@ -2052,8 +2054,10 @@ const StoreScreen = () => {
 
             // 跳转到易支付页面
             window.location.href = result.payUrl;
-        } catch (error) {
+        } catch (error: any) {
+            const msg = error?.message || '未知错误';
             showToast('网络错误', 'error');
+            alert(`系统错误:\n${msg}\n\n请截图联系客服`);
             setIsPaying(false);
         }
     };
