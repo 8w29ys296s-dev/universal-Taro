@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import * as authService from './services/authService';
 import * as userService from './services/userService';
 import * as readingsService from './services/readingsService';
+import * as paymentService from './services/paymentService';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // --- I18n Constants ---
@@ -1902,6 +1903,94 @@ const ProfileScreen = () => {
     );
 };
 
+// 支付结果页面
+const PaymentResultScreen = () => {
+    const navigate = useNavigate();
+    const { t, lang } = useLanguage();
+    const location = useLocation();
+    const [status, setStatus] = useState<'loading' | 'success' | 'failed' | 'pending'>('loading');
+    const [orderNo, setOrderNo] = useState('');
+
+    useEffect(() => {
+        const checkPayment = async () => {
+            // 从 URL 参数获取订单信息
+            const params = new URLSearchParams(location.search);
+            const tradeStatus = params.get('trade_status');
+            const outTradeNo = params.get('out_trade_no') || localStorage.getItem('pending_order') || '';
+
+            setOrderNo(outTradeNo);
+
+            if (tradeStatus === 'TRADE_SUCCESS') {
+                setStatus('success');
+                // 刷新余额
+                window.dispatchEvent(new Event('balance_updated'));
+                localStorage.removeItem('pending_order');
+                triggerStrongHaptic();
+            } else if (outTradeNo) {
+                // 查询订单状态
+                const order = await paymentService.getOrderStatus(outTradeNo);
+                if (order?.status === 'paid') {
+                    setStatus('success');
+                    window.dispatchEvent(new Event('balance_updated'));
+                    localStorage.removeItem('pending_order');
+                    triggerStrongHaptic();
+                } else if (order?.status === 'pending') {
+                    setStatus('pending');
+                } else {
+                    setStatus('failed');
+                }
+            } else {
+                setStatus('failed');
+            }
+        };
+
+        checkPayment();
+    }, [location.search]);
+
+    const statusConfig = {
+        loading: { icon: 'hourglass_empty', color: 'text-white/60', title: '查询中...', desc: '正在确认支付结果' },
+        success: { icon: 'check_circle', color: 'text-green-400', title: '支付成功', desc: '金币已到账，祝你好运！' },
+        pending: { icon: 'schedule', color: 'text-yellow-400', title: '等待支付', desc: '订单尚未支付完成' },
+        failed: { icon: 'error', color: 'text-red-400', title: '支付失败', desc: '请重新尝试或联系客服' },
+    };
+
+    const config = statusConfig[status];
+
+    return (
+        <div className="bg-background-dark min-h-screen flex flex-col items-center justify-center px-6">
+            <div className="glass-panel p-8 rounded-2xl w-full max-w-sm flex flex-col items-center text-center">
+                <div className={`size-20 rounded-full bg-white/5 flex items-center justify-center mb-6 ${status === 'loading' ? 'animate-pulse' : ''}`}>
+                    <span className={`material-symbols-outlined text-5xl ${config.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                        {config.icon}
+                    </span>
+                </div>
+
+                <h1 className="text-2xl font-bold text-white mb-2">{config.title}</h1>
+                <p className="text-white/60 text-sm mb-6">{config.desc}</p>
+
+                {orderNo && (
+                    <p className="text-xs text-white/30 mb-6 font-mono">订单号: {orderNo}</p>
+                )}
+
+                <div className="flex gap-3 w-full">
+                    <button
+                        onClick={() => navigate('/store')}
+                        className="flex-1 py-3 bg-white/5 text-white/70 font-bold rounded-xl hover:bg-white/10 transition-all"
+                    >
+                        返回商店
+                    </button>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="flex-1 py-3 bg-gradient-to-r from-primary to-[#eab308] text-[#1a0b2e] font-bold rounded-xl hover:brightness-110 shadow-lg"
+                    >
+                        开始占卜
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const StoreScreen = () => {
     const navigate = useNavigate();
     const { t, lang } = useLanguage();
@@ -1935,30 +2024,38 @@ const StoreScreen = () => {
         return () => window.removeEventListener('balance_updated', handleUpdate);
     }, []);
 
+    const [isPaying, setIsPaying] = useState(false);
+    const [payType, setPayType] = useState<'alipay' | 'wxpay'>('alipay');
+
     const handlePurchase = async (item: any) => {
-        const currentTotal = totalRecharge;
-        const rechargeValue = item.coins + item.bonus;
-
-        const result = await userService.processRecharge(item.coins, item.bonus);
-        if (!result.success) {
-            showToast('充值失败', 'error');
-            return;
-        }
-
-        // 更新缓存 + 触发余额更新事件
-        if (result.newBalance !== undefined) {
-            localStorage.setItem('balance_cache', result.newBalance.toString());
-        }
-        window.dispatchEvent(new Event('balance_updated'));
-
-        // Behavioral Economics: Trigger Grand Unlock if crossing threshold
-        const newTotal = currentTotal + rechargeValue;
-        if (currentTotal < UNLOCK_THRESHOLD && newTotal >= UNLOCK_THRESHOLD) {
-            setShowUnlockAnimation(true);
-        }
-
-        showToast(t('store.success'), 'check_circle');
+        if (isPaying) return;
+        setIsPaying(true);
         triggerHaptic();
+
+        try {
+            const result = await paymentService.createPaymentOrder(
+                item.id,
+                lang === 'zh' ? item.priceCn : item.price,
+                item.coins,
+                item.bonus,
+                payType
+            );
+
+            if (!result.success || !result.payUrl) {
+                showToast(result.error || '创建订单失败', 'error');
+                setIsPaying(false);
+                return;
+            }
+
+            // 保存订单号到 localStorage 用于查询
+            localStorage.setItem('pending_order', result.outTradeNo || '');
+
+            // 跳转到易支付页面
+            window.location.href = result.payUrl;
+        } catch (error) {
+            showToast('网络错误', 'error');
+            setIsPaying(false);
+        }
     };
 
     const isUnlocked = totalRecharge >= UNLOCK_THRESHOLD;
@@ -2101,6 +2198,7 @@ const App = () => {
                     <Route path="/profile" element={<ProfileScreen />} />
                     <Route path="/login" element={<LoginScreen />} />
                     <Route path="/settings" element={<SettingsScreen />} />
+                    <Route path="/payment/result" element={<PaymentResultScreen />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Router>
