@@ -2044,7 +2044,6 @@ const StoreScreen = () => {
             if (!result.success || !result.payUrl) {
                 const errorMsg = result.error || '创建订单失败';
                 showToast(errorMsg, 'error');
-                alert(`支付错误:\n${errorMsg}\n\n请截图联系客服`);
                 setIsPaying(false);
                 return;
             }
@@ -2057,7 +2056,7 @@ const StoreScreen = () => {
         } catch (error: any) {
             const msg = error?.message || '未知错误';
             showToast('网络错误', 'error');
-            alert(`系统错误:\n${msg}\n\n请截图联系客服`);
+            console.error('Payment error:', msg);
             setIsPaying(false);
         }
     };
@@ -2073,7 +2072,7 @@ const StoreScreen = () => {
             {showUnlockAnimation && <GrandUnlockOverlay onClose={() => setShowUnlockAnimation(false)} />}
 
             <div className="pt-12 px-6 pb-4">
-                <h1 className="text-2xl font-bold text-white mb-6">{t('store.title')} <span className="text-xs opacity-50 bg-white/10 px-2 py-1 rounded">Dev 1.1</span></h1>
+                <h1 className="text-2xl font-bold text-white mb-6">{t('store.title')}</h1>
 
                 {/* Balance Card */}
                 <div className="w-full bg-gradient-to-r from-[#f4c025] to-[#b4860b] rounded-2xl p-6 mb-4 shadow-lg relative overflow-hidden">
