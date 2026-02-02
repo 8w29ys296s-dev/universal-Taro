@@ -1,27 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import md5 from "https://esm.sh/blueimp-md5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// MD5 签名函数
-async function md5(message: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest("MD5", msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 // 生成易支付签名
-async function generateSign(params: Record<string, string>, key: string): Promise<string> {
+function generateSign(params: Record<string, string>, key: string): string {
   const sortedKeys = Object.keys(params)
-    .filter((k) => params[k] !== "")
+    .filter((k) => k !== "sign" && k !== "sign_type" && params[k] !== "")
     .sort();
   
+  // 易支付签名：key=value&key=value...&key
+  // 注意：有些易支付实现不用 & 连接，但标准易支付通常使用
+  // 为了保险，我先查看用户提供的 uploaded_media_1770000220649.png 截图，但那里没有代码。
+  // 通常易支付（彩虹）是 a=1&b=2...key，中间没 &？不，是 a=1&b=2...&key=xxx ? No.
+  // 易支付文档通常说：将参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
+  // 在stringA最后拼接上key得到stringSignTemp字符串，并对stringSignTemp进行MD5运算。
+  // 所以是 `join("&") + key`。
+  
   const signStr = sortedKeys.map((k) => `${k}=${params[k]}`).join("&") + key;
-  return await md5(signStr);
+  return md5(signStr);
 }
 
 // 生成订单号

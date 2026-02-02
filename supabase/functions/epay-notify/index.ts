@@ -1,21 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import md5 from "https://esm.sh/blueimp-md5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// MD5 签名函数
-async function md5(message: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest("MD5", msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 // 验证易支付签名
-async function verifySign(params: Record<string, string>, key: string): Promise<boolean> {
+function verifySign(params: Record<string, string>, key: string): boolean {
   const sign = params.sign;
   const signType = params.sign_type || "MD5";
   
@@ -25,7 +18,7 @@ async function verifySign(params: Record<string, string>, key: string): Promise<
     .sort();
   
   const signStr = sortedKeys.map((k) => `${k}=${params[k]}`).join("&") + key;
-  const calculatedSign = await md5(signStr);
+  const calculatedSign = md5(signStr);
   
   return calculatedSign.toLowerCase() === sign.toLowerCase();
 }
