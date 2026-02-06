@@ -51,6 +51,7 @@ export const createPaymentOrder = async (
         console.error('VITE_SUPABASE_URL is missing');
         return { success: false, error: '配置错误: 缺少 API 地址 (请在 Zeabur 设置环境变量)' };
     }
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     try {
         const response = await fetch(
@@ -60,6 +61,7 @@ export const createPaymentOrder = async (
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`,
+                    'apikey': supabaseAnonKey,
                 },
                 body: JSON.stringify({
                     itemId,
