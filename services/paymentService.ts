@@ -54,6 +54,10 @@ export const createPaymentOrder = async (
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     try {
+        console.log('[Payment Debug] accessToken:', accessToken ? `${accessToken.substring(0, 20)}...` : 'MISSING');
+        console.log('[Payment Debug] apikey:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING');
+        console.log('[Payment Debug] supabaseUrl:', supabaseUrl);
+
         const response = await fetch(
             `${supabaseUrl}/functions/v1/create-order`,
             {
