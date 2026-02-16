@@ -13,15 +13,9 @@ function generateSign(params: Record<string, string>, key: string): string {
     .filter((k) => k !== "sign" && k !== "sign_type" && params[k] !== "")
     .sort();
   
-  // 易支付签名：key=value&key=value...&key
-  // 注意：有些易支付实现不用 & 连接，但标准易支付通常使用
-  // 为了保险，我先查看用户提供的 uploaded_media_1770000220649.png 截图，但那里没有代码。
-  // 通常易支付（彩虹）是 a=1&b=2...key，中间没 &？不，是 a=1&b=2...&key=xxx ? No.
-  // 易支付文档通常说：将参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
-  // 在stringA最后拼接上key得到stringSignTemp字符串，并对stringSignTemp进行MD5运算。
-  // 所以是 `join("&") + key`。
-  
-  const signStr = sortedKeys.map((k) => `${k}=${params[k]}`).join("&") + key;
+  // 标准彩虹易支付签名：key1=value1&key2=value2...&key=商户密钥
+  const stringA = sortedKeys.map((k) => `${k}=${params[k]}`).join("&");
+  const signStr = stringA + "&key=" + key;
   return md5(signStr);
 }
 
@@ -111,7 +105,7 @@ serve(async (req) => {
     if (insertError) {
       console.error("Failed to create order:", insertError);
       return new Response(
-        JSON.stringify({ error: "Failed to create order" }),
+        JSON.stringify({ error: "Failed to create order", detail: insertError.message, code: insertError.code }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
